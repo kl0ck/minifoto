@@ -21,8 +21,8 @@ public class App implements Runnable {
     public static void main(String[] args) {
         if (args.length < 2) {
             out.println("Argumentos: caminho, tamanho");
-            out.println();
             out.println(String.format("Exemplo: \"C:\\Users\\Pedro\\Pictures\\foto.jpg\" \"512x512\""));
+            out.println();
             System.exit(0);
         }
 
