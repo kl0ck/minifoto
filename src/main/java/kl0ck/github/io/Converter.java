@@ -21,8 +21,14 @@ public class Converter {
             return new Dimension(w, h);
 
         } else {
-            throw new IllegalArgumentException(size);
+            throw new IllegalArgumentException("Formato de tamanho inválido: " + size);
         }
+    }
+
+    public static String toString(Dimension size) {
+        Objects.requireNonNull(size);
+
+        return size.width + "x" + size.height;
     }
 
 }

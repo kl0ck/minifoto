@@ -2,8 +2,8 @@ package kl0ck.github.io;
 
 import static java.lang.System.out;
 
-import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
@@ -11,12 +11,63 @@ import java.util.Objects;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FilenameUtils;
-import org.imgscalr.Scalr;
+import org.apache.commons.lang3.StringUtils;
 
 public class App implements Runnable {
 
-    final String path;
-    final String size;
+    private final File file;
+    private final Dimension size;
+
+    App(File file, Dimension size) {
+        Objects.requireNonNull(file);
+        Objects.requireNonNull(size);
+
+        if (!file.exists()) {
+            throw new IllegalArgumentException("O arquivo ou diretório não existe: " + file.getAbsolutePath());
+        }
+
+        this.file = file;
+        this.size = size;
+    }
+
+    @Override
+    public void run() {
+        if (file.isDirectory()) {
+            System.out.println("isDirectory = " + file.isDirectory());
+
+/*             try (Stream<Path> files = Files.list(filePath.toPath())) {
+                out.println(Arrays.toString(files.toArray()));
+    
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+ */
+        } else if (file.isFile()) {
+            System.out.println("isFile = " + file.isFile());
+
+            try {
+
+                BufferedImage image = ImageUtils.resize(file, size);
+                String extension = FilenameUtils.getExtension(file.getAbsolutePath());
+                
+                // Concatena nome do arquivo, tempo atual em milisegundos, e a extensao original.
+                String newFileName = String.format("%s-%s-%s.%s", 
+                    // Remove extensao do nome do arquivo original, para nao ficar no meio do novo nome.
+                    StringUtils.removeEnd(file.getAbsolutePath(), "." + extension), 
+                    Converter.toString(size),
+                    System.currentTimeMillis(),
+                    extension);
+
+                ImageIO.write(image, extension, new File(newFileName));
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        } else {
+            throw new RuntimeException(file.getAbsolutePath());
+        }
+    }
 
     public static void main(String[] args) {
         if (args.length < 2) {
@@ -26,68 +77,15 @@ public class App implements Runnable {
             System.exit(0);
         }
 
-        String path = args[0];
-        String size = args[1];
+        File file = new File(args[0]);
+        Dimension size = Converter.toDimension(args[1]);
 
-        System.out.println("path = " + path);
+        System.out.println("file = " + file);
         System.out.println("size = " + size);
 
-        App app = new App(path, size);
+        App app = new App(file, size);
 
         app.run();
-    }
-
-    App(String path, String size) {
-        Objects.requireNonNull(path);
-        Objects.requireNonNull(size);
-
-        this.path = path;
-        this.size = size;
-    }
-
-    @Override
-    public void run() {
-        File filePath = new File(path);
-
-        if (filePath.isDirectory()) {
-            System.out.println("isDirectory = " + filePath.isDirectory());
-
-/*             try (Stream<Path> files = Files.list(filePath.toPath())) {
-                out.println(Arrays.toString(files.toArray()));
-    
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
- */
-        } else if (filePath.isFile()) {
-            System.out.println("isFile = " + filePath.isFile());
-
-            try {
-
-                BufferedImage img = resize(filePath, size);
-
-                String ext = FilenameUtils.getExtension(path);
-
-                ImageIO.write(img, ext, new File(path + System.currentTimeMillis() + "." + ext));
-
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-        } else {
-            throw new RuntimeException(filePath.getAbsolutePath());
-        }
-    }
-
-    public static BufferedImage resize(File imgFile, String newSize) throws IOException {
-        Objects.requireNonNull(imgFile);
-        Objects.requireNonNull(newSize);
-
-        BufferedImage img = ImageIO.read(imgFile);
-
-        Dimension dim = Converter.toDimension(newSize);
-
-        return Scalr.resize(img, dim.width, dim.height);
     }
 
 }
