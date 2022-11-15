@@ -2,20 +2,21 @@ package kl0ck.github.io;
 
 import static java.lang.System.out;
 
-import java.awt.image.BufferedImage;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Stream;
 
-import javax.imageio.ImageIO;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
+import javax.swing.SwingUtilities;
 
 public class App implements Runnable {
 
     private final File file;
+
     private final Dimension size;
 
     App(File file, Dimension size) {
@@ -33,35 +34,29 @@ public class App implements Runnable {
     @Override
     public void run() {
         if (file.isDirectory()) {
-            System.out.println("isDirectory = " + file.isDirectory());
+            out.println("isDirectory = " + file.isDirectory());
 
-/*             try (Stream<Path> files = Files.list(filePath.toPath())) {
+            Path dir = file.toPath();
+
+            try (Stream<Path> files = Files.list(dir)) {
                 out.println(Arrays.toString(files.toArray()));
-    
+
+                // FIXME
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
- */
+
         } else if (file.isFile()) {
-            System.out.println("isFile = " + file.isFile());
+            out.println("isFile = " + file.isFile());
 
             try {
+                ImageResizer imageResizer = new ImageResizer();
 
-                BufferedImage image = ImageUtils.resize(file, size);
-                String extension = FilenameUtils.getExtension(file.getAbsolutePath());
-                
-                // Concatena nome do arquivo, tempo atual em milisegundos, e a extensao original.
-                String newFileName = String.format("%s-%s-%s.%s", 
-                    // Remove extensao do nome do arquivo original, para nao ficar no meio do novo nome.
-                    StringUtils.removeEnd(file.getAbsolutePath(), "." + extension), 
-                    Converter.toString(size),
-                    System.currentTimeMillis(),
-                    extension);
+                imageResizer.resize(file, size);
 
-                ImageIO.write(image, extension, new File(newFileName));
-
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
             }
 
         } else {
@@ -72,20 +67,18 @@ public class App implements Runnable {
     public static void main(String[] args) {
         if (args.length < 2) {
             out.println("Argumentos: caminho, tamanho");
-            out.println(String.format("Exemplo: \"C:\\Users\\Pedro\\Pictures\\foto.jpg\" \"512x512\""));
+            out.println(String.format("Exemplo: \"C:\\Users\\Carlos\\Pictures\\foto.jpg\" \"512x512\""));
             out.println();
             System.exit(0);
         }
 
         File file = new File(args[0]);
-        Dimension size = Converter.toDimension(args[1]);
+        Dimension size = DimensionConverter.toDimension(args[1]);
 
-        System.out.println("file = " + file);
-        System.out.println("size = " + size);
+        out.println("file = " + file);
+        out.println("size = " + size);
 
-        App app = new App(file, size);
-
-        app.run();
+        SwingUtilities.invokeLater(new App(file, size));
     }
 
 }

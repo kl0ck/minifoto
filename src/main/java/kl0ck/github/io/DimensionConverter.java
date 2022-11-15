@@ -3,9 +3,9 @@ package kl0ck.github.io;
 import java.util.Objects;
 import java.awt.Dimension;
 
-public class Converter {
+public class DimensionConverter {
 
-    private Converter() {
+    private DimensionConverter() {
     }
 
     public static Dimension toDimension(String size) {
